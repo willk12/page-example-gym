@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ArrowUpRight, Menu, X, MapPin, Phone } from 'lucide-react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import { navigation } from '../data/content.js'
+import MessagingWidget from './MessagingWidget.jsx'
+import { useSiteMotion } from '../motion/useSiteMotion.js'
 
 function Brand({ footer = false }) {
   return (
@@ -14,7 +16,21 @@ function Brand({ footer = false }) {
 
 export default function SiteLayout({ children }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
+  const { pathname } = useLocation()
+  const mainRef = useRef(null)
   const closeMenu = () => setMenuOpen(false)
+  useSiteMotion(mainRef, pathname)
+
+  useEffect(() => {
+    const updateScrollState = () => setIsScrolled(window.scrollY > 12)
+
+    updateScrollState()
+    window.addEventListener('scroll', updateScrollState, { passive: true })
+    return () => window.removeEventListener('scroll', updateScrollState)
+  }, [])
+
+  if (pathname === '/atendimento') return children
 
   return (
     <>
@@ -22,7 +38,7 @@ export default function SiteLayout({ children }) {
         <span>Gente de verdade. Treino que cabe na vida.</span>
         <Link to="/contato">Marque uma aula experimental <ArrowUpRight size={14} /></Link>
       </div>
-      <header className="site-header">
+      <header className={`site-header${isScrolled ? ' site-header--scrolled' : ''}`}>
         <div className="header-inner wrap">
           <Brand />
           <button className="menu-toggle" type="button" aria-label={menuOpen ? 'Fechar menu' : 'Abrir menu'} aria-expanded={menuOpen} aria-controls="primary-navigation" onClick={() => setMenuOpen((open) => !open)}>
@@ -38,7 +54,7 @@ export default function SiteLayout({ children }) {
           </nav>
         </div>
       </header>
-      <main>{children}</main>
+      <main key={pathname} ref={mainRef} className="page-content">{children}</main>
       <footer className="site-footer">
         <div className="footer-main wrap">
           <div className="footer-brand-block">
@@ -59,6 +75,7 @@ export default function SiteLayout({ children }) {
         </div>
         <div className="footer-bottom wrap"><span>© 2026 Viva Academia. Projeto demonstrativo.</span><span>Feito para viver em movimento.</span></div>
       </footer>
+      {pathname !== '/atendimento' && <MessagingWidget />}
     </>
   )
 }

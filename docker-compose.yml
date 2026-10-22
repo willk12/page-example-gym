@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: viva_chat
+      POSTGRES_USER: viva
+      POSTGRES_PASSWORD: viva_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - viva-chat-data:/var/lib/postgresql/data
+
+volumes:
+  viva-chat-data:
